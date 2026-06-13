@@ -8,7 +8,50 @@
     <link href="./style.css" rel="stylesheet">
 </head>
 <body>
-    
+    <header>
+        <h1>Calibragem de Câmera 3D</h1>
+    </header>
+
+    <main>
+        <section id="canvas-container">
+            <canvas id="canvas-calibrate"></canvas>
+            <p class="bottom-text">Mapeie pelo menos 6 pontos da imagem com suas posições reais.</p>
+        </section>
+
+        <section id="control-panel">
+            <div class="button-arounder">
+                <input type="file" id="image-upload" accept="image/*">
+                <button onclick="document.getElementById('image-upload').click()">Carregar Imagem</button>
+            </div>
+
+            <div id="form-coords">
+                <h3>Mapear Ponto</h3>
+                <p id="coord-p" class="coord-text">Coordenada 2D Selecionada: <span id="display-2d">(Aguardando)</span></p>
+                <label>X (Real):</label> <input class="coord-input" type="number" id="ponto-x" step="any" value="0">
+                <label>Y (Real):</label> <input class="coord-input" type="number" id="ponto-y" step="any" value="0">
+                <label>Z (Real):</label> <input class="coord-input" type="number" id="ponto-z" step="any" value="0">
+                <button id="btn-add">Registrar</button>
+            </div>
+
+            <div id="pt-container">
+                <h3>Pontos (<span id="counter">0</span>/6+)</h3>
+                <ul id="pt-list"></ul>
+                <button id="pt-clean" class="btn-clean">Limpar Todos os Pontos</button>
+            </div>
+
+            <div id="acts-calibrate" style="margin-top: 20px;">
+                <button id="btn-calc" disabled>Processar Calibragem</button>
+            </div>
+            
+            <div id="matrix-log">Aguardando...</div>
+            <div id="log-params">
+                <h4 class="param-text">Parâmetros:</h4>
+                <div id="out-pos"></div>
+                <div id="out-rot"></div>
+                <div id="out-len"></div>
+            </div>
+        </section>
+    </main>
     <script src="./logic.js"></script>
 </body>
 </html>
