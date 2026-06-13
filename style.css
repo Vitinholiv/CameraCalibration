@@ -202,3 +202,27 @@ li {
     display: flex;
     gap: 10px;
 }
+
+
+
+/* Deleção de Pontos */
+.delete-btn {
+    display: none;
+    background-color: transparent;
+    color: #ff4d4d;
+    border: none;
+    width: auto;
+    padding: 0 4%;
+    margin: 0;
+    font-size: 1em;
+    cursor: pointer;
+}
+
+.delete-btn:hover {
+    background-color: transparent;
+    color: #ff0000;
+}
+
+li:hover .delete-btn {
+    display: block;
+}

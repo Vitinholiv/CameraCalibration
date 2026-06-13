@@ -167,6 +167,17 @@ function updatePointsUI() {
     points.forEach((p, i) => {
         const li = document.createElement('li');
         li.innerHTML = `<span>P${i}: (${p.u.toFixed(0)}, ${p.v.toFixed(0)}) ➔ (${p.x}, ${p.y}, ${p.z})</span>`;
+        
+        const btnDel = document.createElement('button');
+        btnDel.className = 'delete-btn';
+        btnDel.innerText = '✖';
+        btnDel.onclick = () => {
+            points.splice(i, 1);
+            updatePointsUI();
+            draw();
+        };
+        
+        li.appendChild(btnDel);
         ul.appendChild(li);
     });
     
