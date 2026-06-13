@@ -5,6 +5,15 @@ canvas.width = 800; canvas.height = 450;
 
 let image = null;
 let cropper = null;
+let points = []; 
+let currentU = null, currentV = null;
+let colorlist = [
+  "#e8370f","#22FF57","#3397FF","#F1C40F",
+  "#9B59B6","#370C9C","#149a7d","#9ff5de",
+  "#FA98DB","#5a0460","#BDC3C7","#34495E",
+  "#e4f320","#b2620d","#AF00A9","#075343",
+  "#053117","#2980B9","#9d70dc","#2C3E50"
+];
 
 // --- Upload de Imagens ---
 const fileInput = document.getElementById('image-upload');
@@ -56,6 +65,73 @@ function draw() {
     if (image) {
         ctx.drawImage(image, 0, 0, canvas.width, canvas.height);
     }
+    points.forEach((p, index) => {
+        ctx.fillStyle = colorlist[index%20]
+        ctx.beginPath(); 
+        ctx.arc(p.u, p.v, 4, 0, Math.PI * 2); 
+        ctx.fill();
+    });
+    if (currentU !== null && currentV !== null) {
+        ctx.strokeStyle = '#fff';  ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.moveTo(currentU - 10, currentV); ctx.lineTo(currentU + 10, currentV);
+        ctx.moveTo(currentU, currentV - 10); ctx.lineTo(currentU, currentV + 10);
+        ctx.stroke();
+    }
+}
+
+// --- Mapeamento de Pontos ---
+const display2D = document.getElementById('display-2d');
+const btnAdd = document.getElementById('btn-add');
+const btnClean = document.getElementById('pt-clean');
+const btnCalc = document.getElementById('btn-calc');
+
+// Seleção de Coordenada
+canvas.addEventListener('mousedown', (e) => {
+    const rect = canvas.getBoundingClientRect();
+    currentU = (e.clientX - rect.left) * (canvas.width / rect.width);
+    currentV = (e.clientY - rect.top) * (canvas.height / rect.height);
+    display2D.innerText = `(${currentU.toFixed(1)}, ${currentV.toFixed(1)})`;
+    draw(); 
+});
+
+// Registrar Ponto
+btnAdd.addEventListener('click', () => {
+    if (currentU === null || currentV === null) {
+        alert("Clique na imagem para capturar uma coordenada 2D.");
+        return;
+    }
+    const x = parseFloat(document.getElementById('ponto-x').value);
+    const y = parseFloat(document.getElementById('ponto-y').value);
+    const z = parseFloat(document.getElementById('ponto-z').value);
+    points.push({ u: currentU, v: currentV, x, y, z });
+    
+    currentU = null; currentV = null;
+    display2D.innerText = "(Aguardando)";
+    updatePointsUI(); draw();
+});
+
+// Limpar Pontos
+btnClean.addEventListener('click', () => {
+    points = [];
+    updatePointsUI(); draw();
+});
+
+// Atualiza a Lista de Pontos
+function updatePointsUI() {
+    const ul = document.getElementById('pt-list');
+    ul.innerHTML = '';
+    
+    points.forEach((p, i) => {
+        const li = document.createElement('li');
+        li.innerHTML = `<span>P${i}: (${p.u.toFixed(0)}, ${p.v.toFixed(0)}) ➔ (${p.x}, ${p.y}, ${p.z})</span>`;
+        ul.appendChild(li);
+    });
+    
+    const count = points.length;
+    document.getElementById('counter').innerText = count;
+    btnClean.style.display = count > 0 ? 'block' : 'none';
+    btnCalc.disabled = (count < 6 && 0);
 }
 
 // --- Execução ---
