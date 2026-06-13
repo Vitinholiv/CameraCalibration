@@ -7,6 +7,9 @@ let image = null;
 let cropper = null;
 let points = []; 
 let currentU = null, currentV = null;
+let hoverU = null, hoverV = null;
+let isCtrlPressed = false;
+
 let colorlist = [
   "#e8370f","#22FF57","#3397FF","#F1C40F",
   "#9B59B6","#370C9C","#149a7d","#9ff5de",
@@ -34,7 +37,7 @@ fileInput.addEventListener('change', (e) => {
     if (cropper) cropper.destroy();
     
     cropper = new Cropper(imageToCrop, {
-        aspectRatio: 16 / 9,
+        aspectRatio: 16/9,
         viewMode: 1,
         autoCropArea: 1,
         background: false
@@ -68,7 +71,7 @@ function draw() {
     points.forEach((p, index) => {
         ctx.fillStyle = colorlist[index%20]
         ctx.beginPath(); 
-        ctx.arc(p.u, p.v, 4, 0, Math.PI * 2); 
+        ctx.arc(p.u, p.v, 4, 0, Math.PI*2); 
         ctx.fill();
     });
     if (currentU !== null && currentV !== null) {
@@ -77,6 +80,23 @@ function draw() {
         ctx.moveTo(currentU - 10, currentV); ctx.lineTo(currentU + 10, currentV);
         ctx.moveTo(currentU, currentV - 10); ctx.lineTo(currentU, currentV + 10);
         ctx.stroke();
+    }
+    if (isCtrlPressed && hoverU !== null && hoverV !== null && image) {
+        const zoom = 3, radius = 60;
+
+        ctx.save(); ctx.beginPath();
+        ctx.arc(hoverU, hoverV, radius, 0, Math.PI*2);
+        ctx.clip(); ctx.fillStyle = "#000"; ctx.fill();
+        const size = (radius*2)/zoom;
+        ctx.drawImage(image, hoverU - (size/2), hoverV - (size/2), size, size,hoverU - radius, hoverV - radius, radius*2, radius*2);
+
+        ctx.strokeStyle = "rgba(0, 255, 0, 0.5)"; ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.moveTo(hoverU - radius, hoverV); ctx.lineTo(hoverU + radius, hoverV);
+        ctx.moveTo(hoverU, hoverV - radius); ctx.lineTo(hoverU, hoverV + radius);
+        ctx.stroke(); ctx.restore();
+        ctx.strokeStyle = "#fff"; ctx.lineWidth = 3;
+        ctx.beginPath(); ctx.arc(hoverU, hoverV, radius, 0, Math.PI*2); ctx.stroke();
     }
 }
 
@@ -89,8 +109,8 @@ const btnCalc = document.getElementById('btn-calc');
 // Seleção de Coordenada
 canvas.addEventListener('mousedown', (e) => {
     const rect = canvas.getBoundingClientRect();
-    currentU = (e.clientX - rect.left) * (canvas.width / rect.width);
-    currentV = (e.clientY - rect.top) * (canvas.height / rect.height);
+    currentU = (e.clientX - rect.left)*(canvas.width/rect.width);
+    currentV = (e.clientY - rect.top)*(canvas.height/rect.height);
     display2D.innerText = `(${currentU.toFixed(1)}, ${currentV.toFixed(1)})`;
     draw(); 
 });
@@ -115,6 +135,28 @@ btnAdd.addEventListener('click', () => {
 btnClean.addEventListener('click', () => {
     points = [];
     updatePointsUI(); draw();
+});
+
+// --- Zoom na Seleção de Pontos ---
+window.addEventListener('keydown', (e) => {
+    if (e.key === 'Control') {
+        isCtrlPressed = true; draw();
+    }
+});
+window.addEventListener('keyup',   (e) => {
+    if (e.key === 'Control') {
+        isCtrlPressed = false; draw();
+    }
+});
+canvas.addEventListener('mousemove', (e) => {
+    const rect = canvas.getBoundingClientRect();
+    hoverU = (e.clientX - rect.left)*(canvas.width/rect.width);
+    hoverV = (e.clientY - rect.top)*(canvas.height/rect.height);
+    if (isCtrlPressed) draw();
+});
+
+canvas.addEventListener('mouseleave', () => {
+    hoverU = null; hoverV = null; draw();
 });
 
 // Atualiza a Lista de Pontos
