@@ -8,6 +8,7 @@
     <link href="./style.css" rel="stylesheet">
 </head>
 <body>
+    <!-- Seção I - Implementação da Interface Visual -->
     <header>
         <h1>Calibragem de Câmera 3D</h1>
     </header>
@@ -36,7 +37,7 @@
             <div id="pt-container">
                 <h3>Pontos (<span id="counter">0</span>/6+)</h3>
                 <ul id="pt-list"></ul>
-                <button id="pt-clean" class="btn-clean">Limpar Todos os Pontos</button>
+                <button id="pt-clean" class="clean-button">Limpar Todos os Pontos</button>
             </div>
 
             <div id="acts-calibrate" style="margin-top: 20px;">
@@ -52,6 +53,22 @@
             </div>
         </section>
     </main>
+
+    <!-- Seção II - Modal de Importação e Recorte de Imagem -->
+    <div id="crop-modal">
+        <div id="crop-container">
+            <h3>Ajuste a imagem para a proporção 16:9</h3>
+            <div class="img-container">
+                <img id="image-to-crop" src="">
+            </div>
+            <div class="modal-actions">
+                <button id="btn-confirm-crop">Cortar e Aplicar</button>
+                <button id="btn-cancel-crop" class="btn-cancel">Cancelar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Script de Lógica Principal-->
     <script src="./logic.js"></script>
 </body>
 </html>
