@@ -262,3 +262,7 @@ li:hover .delete-btn {
 .val-err {
     color: #ff4d4d;
 }
+
+.mini, .val-err, .val-len, .val-rot, .val-pos {
+    font-size: 0.9em;
+}

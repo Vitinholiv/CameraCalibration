@@ -124,6 +124,15 @@ btnAdd.addEventListener('click', () => {
     const x = parseFloat(document.getElementById('ponto-x').value);
     const y = parseFloat(document.getElementById('ponto-y').value);
     const z = parseFloat(document.getElementById('ponto-z').value);
+
+    let repeated = false;
+    points.forEach((p,index) => {
+        if(p.x == x && p.y == y && p.z == z) repeated = true;
+    });
+    if(repeated){
+        alert("Ponto já registrado");
+        return;
+    }
     points.push({ u: currentU, v: currentV, x, y, z });
     
     currentU = null; currentV = null;
@@ -210,16 +219,16 @@ btnCalc.addEventListener('click', () => {
 
     // Extração de Parâmetros
     try {
-        const params = decomposeP(P);
-        let fov = 2 * Math.atan((canvas.height / 2) / params.lente.fy) * (180 / Math.PI);
-        let aspect = params.lente.fy / params.lente.fx;
+        const params = paramExtraction(P);
+        let fov = 2 * Math.atan((canvas.height / 2) / params.len.fy) * (180 / Math.PI);
+        let aspect = params.len.fy / params.len.fx;
 
         document.getElementById('out-pos').innerHTML = 
-        `<strong>(X, Y, Z):</strong> <span class="val-pos">(${params.posicao[0].toFixed(2)}, ${params.posicao[1].toFixed(2)}, ${params.posicao[2].toFixed(2)})</span>`;
+        `<strong class="mini">(X, Y, Z):</strong> <span class="val-pos">${params.pos[0].toFixed(2)}, ${params.pos[1].toFixed(2)}, ${params.pos[2].toFixed(2)}</span>`;
         document.getElementById('out-rot').innerHTML = 
-        `<strong>(Pitch, Yaw, Roll):</strong> <span class="val-rot">(${params.angulos.pitch.toFixed(1)}°, ${params.angulos.yaw.toFixed(1)}°, ${params.angulos.roll.toFixed(1)}°)</span>`;
+        `<strong class="mini">(Pitch, Yaw, Roll):</strong> <span class="val-rot">${params.ang.pitch.toFixed(1)}°, ${params.ang.yaw.toFixed(1)}°, ${params.ang.roll.toFixed(1)}°</span>`;
         document.getElementById('out-len').innerHTML = 
-        `<strong>(FOV, Aspect Ratio):</strong> <span class="val-len">(${fov.toFixed(1)}°, ${aspect.toFixed(2)})</span>`;
+        `<strong class="mini">(FOV, Aspect Ratio):</strong> <span class="val-len">${fov.toFixed(1)}°, ${aspect.toFixed(2)}</span>`;
         document.getElementById('log-params').style.display = 'block';
     } catch (e) {
         document.getElementById('out-pos').innerHTML = `<span class="val-err">Erro na decomposição: Pontos coplanares selecionados.</span>`;
