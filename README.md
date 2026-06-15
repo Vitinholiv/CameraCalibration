@@ -1,4 +1,4 @@
-# Calibração de Câmera 3D via DLT (Direct Linear Transformation)
+# Calibração de Câmera 3D
 
 Esse projeto é uma ferramenta web interativa para extrair parâmetros (intrínsecos e extrínsecos) de uma câmera (real ou simulação) a partir de uma única imagem 2D, correlacionando pixels com coordenadas 3D do mundo real através do algoritmo de Transformação Linear Direta.
 
