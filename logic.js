@@ -4,7 +4,9 @@ const ctx = canvas.getContext('2d');
 canvas.width = 800; canvas.height = 450;
 
 let image = null;
+let origSize = null;
 let cropper = null;
+let cropData = null;
 let points = []; 
 let currentU = null, currentV = null;
 let hoverU = null, hoverV = null;
@@ -54,6 +56,12 @@ btnCancelCrop.addEventListener('click', () => {
 // Aplicar
 btnConfirmCrop.addEventListener('click', () => {
     if (!cropper) return;
+    cropData = cropper.getData();
+    origSize = {
+        w: imageToCrop.naturalWidth,
+        h: imageToCrop.naturalHeight
+    };
+    
     const croppedCanvas = cropper.getCroppedCanvas({ width: 800, height: 450 });
     image = new Image();
     image.onload = () => {
@@ -149,12 +157,12 @@ btnClean.addEventListener('click', () => {
 // --- Zoom na Seleção de Pontos ---
 window.addEventListener('keydown', (e) => {
     if (e.key === 'Control') {
-        isCtrlPressed = true; draw();
+        isCtrlPressed = true; canvas.classList.add('precise'); draw();
     }
 });
 window.addEventListener('keyup',   (e) => {
     if (e.key === 'Control') {
-        isCtrlPressed = false; draw();
+        isCtrlPressed = false; canvas.classList.remove('precise'); draw();
     }
 });
 canvas.addEventListener('mousemove', (e) => {
@@ -220,17 +228,17 @@ btnCalc.addEventListener('click', () => {
     // Extração de Parâmetros
     try {
         const params = paramExtraction(P);
-        let fov = 2 * Math.atan((canvas.height / 2) / params.len.fy) * (180 / Math.PI);
-        let aspect = params.len.fy / params.len.fx;
-
+        console.log(params);
         document.getElementById('out-pos').innerHTML = 
         `<strong class="mini">(X, Y, Z):</strong> <span class="val-pos">${params.pos[0].toFixed(2)}, ${params.pos[1].toFixed(2)}, ${params.pos[2].toFixed(2)}</span>`;
         document.getElementById('out-rot').innerHTML = 
         `<strong class="mini">(Pitch, Yaw, Roll):</strong> <span class="val-rot">${params.ang.pitch.toFixed(1)}°, ${params.ang.yaw.toFixed(1)}°, ${params.ang.roll.toFixed(1)}°</span>`;
         document.getElementById('out-len').innerHTML = 
-        `<strong class="mini">(FOV, Aspect Ratio):</strong> <span class="val-len">${fov.toFixed(1)}°, ${aspect.toFixed(2)}</span>`;
+        `<strong class="mini">(FOV, Aspect Ratio):</strong> <span class="val-len">${params.len.fov.toFixed(1)}°, ${params.len.aspect.toFixed(2)}</span>`;
         document.getElementById('log-params').style.display = 'block';
     } catch (e) {
+        const params = paramExtraction(P);
+        console.log(params);
         document.getElementById('out-pos').innerHTML = `<span class="val-err">Erro na decomposição: Pontos coplanares selecionados.</span>`;
         document.getElementById('out-rot').innerHTML = "";
         document.getElementById('out-len').innerHTML = "";

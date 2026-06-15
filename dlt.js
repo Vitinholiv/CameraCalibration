@@ -1,7 +1,7 @@
 // Usa o algoritmo DLT normalizado para encontrar a matriz de projeção
 function calculateDLT(points){
     const n = points.length;
-    if (n < 6) return null;
+    if(n < 6) return null;
 
     let c2D, c3D, s2D, s3D;
     let dist2D = 0, dist3D = 0;
@@ -81,36 +81,46 @@ function calculateDLT(points){
 
 // Dada a matriz de projeção P, extrai e retorna os parâmetros dela
 function paramExtraction(P){
-    // Definição de M e p4
-    const M = [
-            [P[0][0], P[0][1], P[0][2]],
-            [P[1][0], P[1][1], P[1][2]],
-            [P[2][0], P[2][1], P[2][2]]
-        ];
-    const p4 = [P[0][3], P[1][3], P[2][3]];
+    let M = [
+        [P[0][0], P[0][1], P[0][2]],
+        [P[1][0], P[1][1], P[1][2]],
+        [P[2][0], P[2][1], P[2][2]]
+    ];
+    let p4 = [P[0][3], P[1][3], P[2][3]];
 
-    // Centro da câmera
+    // Correção de sinal de M
+    let detM = M[0][0]*(M[1][1]*M[2][2] - M[1][2]*M[2][1]) 
+             - M[0][1]*(M[1][0]*M[2][2] - M[1][2]*M[2][0]) 
+             + M[0][2]*(M[1][0]*M[2][1] - M[1][1]*M[2][0]);
+             
+    if(detM < 0){
+        for(let i = 0; i < 3; i++){
+            for(let j = 0; j < 3; j++) M[i][j] *= -1;
+            p4[i] *= -1;
+        }
+    }
+
+    // Centro da câmera C
     const Minv = numeric.inv(M);
     const C = numeric.dot(numeric.mul(Minv, -1), p4);
 
-    // Decomposição QR com Gram-Schmidt
-    let R,K;
+    // Decomposição RQ
+    let R, K;
     function QR_dec(){
         const m3 = M[2], m2 = M[1], m1 = M[0];
         let k33 = numeric.norm2(m3);
         let r3 = numeric.div(m3, k33);
-
+        
         let k23 = numeric.dot(m2, r3);
         let r2_unnorm = numeric.sub(m2, numeric.mul(k23, r3));
         let k22 = numeric.norm2(r2_unnorm);
         let r2 = numeric.div(r2_unnorm, k22);
-
+        
         let k13 = numeric.dot(m1, r3), k12 = numeric.dot(m1, r2);
-        let r1_pre = numeric.add(numeric.mul(k13, r3), numeric.mul(k12, r2));
+        let r1_pre = numeric.add(numeric.mul(k13, r3), numeric.mul(k12, r2))
         let r1_unnorm = numeric.sub(m1, r1_pre);
         let k11 = numeric.norm2(r1_unnorm);
         let r1 = numeric.div(r1_unnorm, k11);
-
         R = [r1, r2, r3];
         K = [
             [k11, k12, k13],
@@ -120,25 +130,48 @@ function paramExtraction(P){
     }
     QR_dec();
 
-    // Normaliza a diagonal de K por equivalência e padronização
     K = numeric.div(K, K[2][2]);
-    if (K[0][0] < 0) {
-        K[0][0] *= -1; K[0][1] *= -1; K[0][2] *= -1;
-        R[0] = numeric.mul(R[0], -1);
-    }
-    if (K[1][1] < 0) {
-        K[1][1] *= -1; K[1][2] *= -1;
+    let detR = R[0][0]*(R[1][1]*R[2][2] - R[1][2]*R[2][1]) 
+             - R[0][1]*(R[1][0]*R[2][2] - R[1][2]*R[2][0]) 
+             + R[0][2]*(R[1][0]*R[2][1] - R[1][1]*R[2][0]);
+             
+    if(detR < 0){
         R[1] = numeric.mul(R[1], -1);
+        K[1][1] *= -1;
+        K[1][2] *= -1;
     }
 
-    // Conversão dos Ângulos
-    const pitch = Math.atan2(R[2][1], R[2][2]) * (180 / Math.PI);
-    const yaw = Math.atan2(-R[2][0], Math.sqrt(R[2][1]**2 + R[2][2]**2)) * (180 / Math.PI);
-    const roll = Math.atan2(R[1][0], R[0][0]) * (180 / Math.PI);
+    // Extração de ângulos
+    const Nx = R[2][0], Ny = -R[2][1], Nz = R[2][2];
+    const Ny_norm = Ny / Math.hypot(R[2][0], -R[2][1], R[2][2]);
 
-    return { 
-        pos: C, 
+    const Uy = -R[0][1];
+    const Vy = -R[1][1];
+
+    const pitch = -Math.asin(Math.max(-1, Math.min(1, Ny_norm))) * (180 / Math.PI);
+    const yaw   = Math.atan2(Nz, Nx) * (180 / Math.PI);
+    const roll  = Math.atan2(Uy, Vy) * (180 / Math.PI);
+
+    const fy_px = Math.abs(K[1][1]);
+    const fx_px = Math.abs(K[0][0]);
+    const cy_px = K[1][2]; 
+    const cx_px = K[0][2];
+
+    // Referenciais da imagem
+    let origTop = 0, origBottom = canvas.height;
+    if(cropData && origSize){
+        origTop = -cropData.y * (canvas.height / cropData.height);
+        origBottom = (origSize.h - cropData.y) * (canvas.height / cropData.height);
+    }
+
+    // FOV e Aspect
+    let fov = (Math.atan((cy_px - origTop) / fy_px) + Math.atan((origBottom - cy_px) / fy_px)) * (180 / Math.PI);
+    const aspect = (origSize.w / origSize.h) * (fy_px / fx_px);
+    console.log(fy_px); console.log('/'); console.log(fx_px);
+
+    return {
+        pos: C,
         ang: { pitch, yaw, roll },
-        len: { fx: K[0][0], fy: K[1][1], cx: K[0][2], cy: K[1][2] }
+        len: { fov, aspect }
     };
 }
